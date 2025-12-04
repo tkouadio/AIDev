@@ -1,0 +1,36 @@
+# --- Fichiers/Dossiers à ignorer ---
+
+# Environnement virtuel
+.venv/
+venv/
+
+# Données non versionnées
+data/
+artifacts/
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Fichiers de logs
+*.log
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Fichiers générés par SHAP ou matplotlib
+*.png
+*.svg
+
+# Configurations locales
+.env
+*.env
+
+# Dossier VS Code
+.vscode/
+
+# Dossiers système
+.DS_Store
+Thumbs.db
