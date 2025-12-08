@@ -7,60 +7,55 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.inspection import permutation_importance
 
-import shap
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+import shap
 
 from load_data import load_all
 from feature_engineering import build_features
 from merge_all import merge_with_user_repo
 
-
-# ---------
+# ==========================
 # Chemins
-# ---------
+# ==========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_ROOT = BASE_DIR / "data"
 ARTIFACTS = BASE_DIR / "artifacts"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 
-
-# --------------------------
+# ==========================
 # Recharger data + features
-# --------------------------
+# ==========================
 dfs = load_all(DATA_ROOT)
 
-# Features PR (structure, commits, collaboration, issues, temps)
+# Features PR (structure, commits, collaboration, issues, temps , agents one-hot)
 pr_feats = build_features(dfs, agent_filter=None)
 
-# Merge avec user + repo
+# Merge avec user, repo
 df = merge_with_user_repo(pr_feats, dfs["user"], dfs["repo"])
 
-candidate_features = [
-    # Structure PR
-    "title_length", "body_length",
-
-    # Commits / fichiers / patchs
-    "commits", "changed_files", "additions", "deletions", "total_changes",
-
-    # Collaboration
-    "num_comments", "num_review_comments",
-    "num_reviews", "num_reviewers_unique",
-
-    # Issues
-    "has_issue_linked",
-
-    # Temporalité
-    "pr_duration_days", "created_hour",
-
-    # Auteur
-    "followers", "public_repos", "author_tenure_days",
-
-    # Repo
-    "forks", "stars",
-]
-
-feature_cols = [c for c in candidate_features if c in df.columns]
 target_col = "accepted_pr"
+
+# ========================================================
+# Lire la vraie liste de features utilisée au training
+# ========================================================
+feat_path = ARTIFACTS / "model_features.csv"
+feat_df = pd.read_csv(feat_path)
+
+if feat_df.shape[1] == 1:
+    feature_cols = feat_df.iloc[:, 0].tolist()
+else:
+    feature_cols = feat_df.columns.tolist()
+
+print("Features attendues par le modèle :")
+print(feature_cols)
+print(f"Nombre de features (model_features.csv) : {len(feature_cols)}")
+
+missing = [c for c in feature_cols if c not in df.columns]
+if missing:
+    raise ValueError(f"Colonnes manquantes dans df par rapport au modèle : {missing}")
 
 df_model = df[feature_cols + [target_col]].copy()
 df_model = df_model.replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -68,40 +63,40 @@ df_model = df_model.replace([np.inf, -np.inf], np.nan).fillna(0)
 X = df_model[feature_cols].astype(float)
 y = df_model[target_col].astype(int)
 
+print(f"\nDataset d'évaluation : {X.shape[0]} lignes, {X.shape[1]} features")
+
+# ==========================
+# Split train / test
+# ==========================
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
+    X,
+    y,
     test_size=0.2,
     random_state=42,
     stratify=y if y.nunique() == 2 else None,
 )
 
-print(f"Dataset d'évaluation : {X.shape[0]} lignes, {X.shape[1]} features")
-
-
-# -------------------
+# ==========================
 # Charger le modèle
-# -------------------
+# ==========================
 model_path = ARTIFACTS / "model_rf.joblib"
 clf = joblib.load(model_path)
 print(f"Modèle chargé depuis {model_path}")
 
-
-# ---------------------
-# 3) Évaluation simple
-# ---------------------
+# ==========================
+# Évaluation simple
+# ==========================
 y_pred = clf.predict(X_test)
 print("\n=== Classification report (évaluation) ===")
 report = classification_report(y_test, y_pred, digits=3)
 print(report)
 
-# Sauvegarde du rapport dans un fichier texte
 with open(ARTIFACTS / "classification_report.txt", "w", encoding="utf-8") as f:
     f.write(report)
 
-
-# ------------------------------
+# ==========================
 # SHAP : importance globale
-# ------------------------------
+# ==========================
 shap.initjs()
 
 sample_size = min(2000, X_train.shape[0])
@@ -123,14 +118,13 @@ else:
 print("[SHAP] X_train_sample shape :", X_train_sample.shape)
 print("[SHAP] shap_for_plot shape  :", shap_for_plot.shape)
 
-# Summary plot bar: Importance moyenne absolue
 plt.figure()
 shap.summary_plot(
     shap_for_plot,
     X_train_sample,
     feature_names=X_train_sample.columns,
     plot_type="bar",
-    show=False,
+    show=False,            
 )
 plt.tight_layout()
 plt.savefig(ARTIFACTS / "shap_summary_bar.png", bbox_inches="tight")
@@ -138,10 +132,9 @@ plt.close()
 
 print("Graphique SHAP (bar) sauvegardé dans artifacts/shap_summary_bar.png")
 
-
-# ------------------------------
-# Gradients : Importance par permutation
-# ------------------------------
+# ==========================
+# Importance par permutation
+# ==========================
 print("\n=== Importance par permutation (sensibilité globale) ===")
 perm = permutation_importance(
     clf,
