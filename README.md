@@ -1,4 +1,4 @@
-# 🤖 Predicting Acceptance of AI-Generated Pull Requests  
+# 🤖 Prédiction de l’acceptation des Pull Requests générées ou assistées par l’IA  
 **Projet final du cours l’ingénierie de mise en production des versions logicielles (MGL869) à la maîtrise en génie logiciel. – AIDev / Mining Software Repositories**
 
 ---
