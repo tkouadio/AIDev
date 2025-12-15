@@ -28,7 +28,7 @@ Pour cela, j'ai construit :
 
 ---
 
-## ❓ Questions de recherche (Research Questions)
+## ❓ Questions de recherche
 
 - **RQ1 :** Quelles caractéristiques différencient les Pull Requests acceptées des Pull Requests rejetées ?  
 - **RQ2 :** Est-il possible de prédire l’acceptation d’une Pull Request IA à partir de ses métriques ?  
