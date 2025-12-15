@@ -103,9 +103,9 @@ J'ai utilisé un **RandomForestClassifier** pour les raisons suivantes :
 
 ### 🎯 Performance du modèle
 
-- **Accuracy globale :** ~ 88 %  
-- **F1-score PR acceptées :** ~ 0.92  
-- **F1-score PR rejetées :** ~ 0.77  
+- **Accuracy globale :**  88 %  
+- **F1-score PR acceptées :**  0.92  
+- **F1-score PR rejetées :**  0.77  
 
 ➡️ Le modèle prédit très bien les PR acceptées, les PR rejetées étant plus difficiles car minoritaires.
 
@@ -203,6 +203,6 @@ Ce projet montre qu’il est possible de :
 ## 👤 Auteur
 
 **Thierry Kouadio**
-Maîtrise en génie logiciel – ÉTS Montréal
-Projet final – AIDev / Mining Software Repositories
+; Maîtrise en génie logiciel – ÉTS Montréal
+; Projet final – AIDev / Mining Software Repositories
 
